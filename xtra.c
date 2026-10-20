@@ -743,11 +743,7 @@ XTRA_API void deregister_widget(Widget *parent, Widget *w)
 
 XTRA_API struct Widget *new_widget(
     const char *id,
-    LayoutFunc calc_layout,
-    CursorFunc calc_cursor,
-    RenderFunc render_func,
-    EventFunc  event_func,
-    ResizeFunc resize_func,
+    WidgetMethods methods,
     
     bool is_visible,
     bool is_focusable,
@@ -766,6 +762,7 @@ XTRA_API struct Widget *new_widget(
     
     if (has_frame)
     {
+        /*
         size_t id_len = strlen(id);
         size_t frame_postfix_len = strlen(FRAME_POSTFIX);
         
@@ -776,14 +773,19 @@ XTRA_API struct Widget *new_widget(
         strcpy(frame_id, id);
         strcpy(frame_id + id_len, "_frame");
         frame_id[id_len + frame_postfix_len] = '\0';
+        */
+        
+        char frame_id[MAX_ID_LENGTH];
+        strncpy(frame_id, id, MAX_ID_LENGTH);
+        strncpy(frame_id + strlen(id), "_frame", MAX_ID_LENGTH);
+        
+        WidgetMethods frame_methods = {0};
+        frame_methods.calc_layout = methods.calc_layout;
+        frame_methods.render_func = render_frame_default_func;
         
         Widget *frame = new_widget(
             frame_id,
-            calc_layout,
-            NULL,
-            render_frame_default_func,
-            NULL,
-            NULL,
+            frame_methods,
             is_visible,
             false,
             false
@@ -792,7 +794,7 @@ XTRA_API struct Widget *new_widget(
         assert(frame != NULL);
         w->frame = frame;
         
-        free(frame_id);
+        //free(frame_id);
     } else {
         w->frame = NULL;
     }
@@ -804,15 +806,15 @@ XTRA_API struct Widget *new_widget(
     if (has_frame)
         w->calc_layout = frame_connected_widget_calc_layout;
     else
-        w->calc_layout = calc_layout;
+        w->calc_layout = methods.calc_layout;
 
     w->last_event_type = NONE_TYPE;
 
-    w->calc_cursor  = calc_cursor;
-    w->render_func  = render_func;
-    w->event_func   = event_func;
-    w->resize_func  = resize_func;
-    
+    w->calc_cursor = methods.calc_cursor;
+    w->render_func = methods.render_func;
+    w->event_func  = methods.event_func;
+    w->resize_func = methods.resize_func;
+
     w->child_count = 0;
     
     return w;

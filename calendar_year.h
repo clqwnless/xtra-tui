@@ -577,11 +577,13 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
 {
     Widget *container = new_widget(
         id,
-        layout_func,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
+        (WidgetMethods){
+            layout_func,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+        },
         true,
         false,
         true
@@ -589,11 +591,13 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     
     Widget *ym_field = new_widget(
         "ym_field",
-        ws_yearmonth_field,
-        NULL,
-        render_ym,
-        NULL,
-        NULL,
+        (WidgetMethods){
+            ws_yearmonth_field,
+            NULL,
+            render_ym,
+            NULL,
+            NULL,
+        },
         true,
         false,
         true
@@ -601,12 +605,13 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     
     Widget *calendar_box = new_widget(
         "calendar_box",
-        ws_calendar_box,
-        NULL,
-        render_calendar,
-        event_calendar,
-        resize_calendar,
-        
+        (WidgetMethods){
+            ws_calendar_box,
+            NULL,
+            render_calendar,
+            event_calendar,
+            resize_calendar,
+        },
         true,
         true,
         false
@@ -614,11 +619,13 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     
     Widget *left_arrow = new_widget(
         "left_arrow",
-        ws_leftarrow,
-        NULL,
-        render_leftarrow,
-        event_leftarrow,
-        NULL,
+        (WidgetMethods){
+            ws_leftarrow,
+            NULL,
+            render_leftarrow,
+            event_leftarrow,
+            NULL,
+        },
         
         true,
         true,
@@ -627,11 +634,13 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     
     Widget *right_arrow = new_widget(
         "right_arrow",
-        ws_rightarrow,
-        NULL,
-        render_rightarrow,
-        event_rightarrow,
-        NULL,
+        (WidgetMethods){
+            ws_rightarrow,
+            NULL,
+            render_rightarrow,
+            event_rightarrow,
+            NULL,
+        },
         
         true,
         true,

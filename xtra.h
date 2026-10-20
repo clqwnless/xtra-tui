@@ -59,7 +59,9 @@ typedef struct Event      Event;
 typedef enum   EventType  EventType;
 typedef struct App        App;
 typedef struct Widget     Widget;
-typedef struct Rect Rect;
+typedef struct Rect       Rect;
+
+typedef struct WidgetMethods WidgetMethods;
 
 typedef struct InputEvent InputEvent;
 
@@ -229,7 +231,14 @@ struct InputEvent
     };
 };
 
-
+struct WidgetMethods
+{
+    LayoutFunc calc_layout;
+    CursorFunc calc_cursor;
+    RenderFunc render_func;
+    EventFunc  event_func;
+    ResizeFunc resize_func;
+};
 
 struct Widget
 {
@@ -260,6 +269,8 @@ struct Widget
     Widget **children;
     uint32_t child_count;
 };
+
+
 
 /* main api */
 
@@ -294,11 +305,7 @@ XTRA_API void show_cursor(bool flag);
 
 XTRA_API struct Widget *new_widget(
     const char *id,
-    LayoutFunc calc_layout,
-    CursorFunc calc_cursor,
-    RenderFunc render_func,
-    EventFunc  event_func,
-    ResizeFunc resize_func,
+    WidgetMethods methods,
     
     bool is_visible,
     bool is_focusable,

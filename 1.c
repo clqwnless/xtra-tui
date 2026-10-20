@@ -52,7 +52,7 @@ int main(void) {
     
     init(app);
    
-    Widget *root     = new_widget("root",     ws_root,     NULL, NULL, NULL, NULL, false, false, false);
+    Widget *root     = new_widget("root",     (WidgetMethods){ws_root, NULL, NULL, NULL, NULL}, false, false, false);
     Widget *calendar = new_calendar("calendar", ws_calendar);
     
     app->root    = root;
