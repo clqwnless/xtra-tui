@@ -412,7 +412,7 @@ XTRA_API bool is_in_rect(Rect rect, int x, int y)
 
 Rect calc_outer_rect(Widget *w)
 {
-    if (w->has_frame)
+    if (w->flags & WIDGET_HAS_FRAME)
         return w->frame->calc_layout(w->frame);
     return w->calc_layout(w);
 }
@@ -500,7 +500,7 @@ Widget *_match_cursor(Widget *start_node, Widget *end_node, short x, short y)
 
             Rect wsabs = calc_wsabs(child);
             
-            if (child->is_visible && is_in_rect(wsabs, x, y))
+            if (child->flags & (WIDGET_IS_VISIBLE) && is_in_rect(wsabs, x, y))
                 return child;
         }
         
@@ -693,7 +693,7 @@ XTRA_API int register_widget(Widget *w, Widget *parent)
     
     w->parent      = parent;
     
-    if (w->has_frame)
+    if (w->flags & WIDGET_HAS_FRAME)
     {
         //printf("registering: \"%s\", has frame\n");
         register_widget(w->frame, parent);
@@ -727,7 +727,7 @@ XTRA_API void deregister_widget(Widget *parent, Widget *w)
 {
     for (uint32_t i = 0; i < parent->child_count; )
     {
-        if (parent->children[i] == w || (w->has_frame && parent->children[i] == w->frame))
+        if (parent->children[i] == w || (w->flags & WIDGET_HAS_FRAME && parent->children[i] == w->frame))
         {
             for (uint32_t j = i; j + 1 < parent->child_count; j++)
             {
@@ -744,16 +744,15 @@ XTRA_API void deregister_widget(Widget *parent, Widget *w)
 XTRA_API struct Widget *new_widget(
     const char *id,
     WidgetMethods methods,
-    
-    bool is_visible,
-    bool is_focusable,
-    bool has_frame
+    uint32_t flags
 )
 {    
     Widget *w = malloc(sizeof(Widget));
     
     if (w == NULL)
         return (Widget*)-1;
+    
+    bool has_frame = (flags & WIDGET_HAS_FRAME) != 0;
     
     strncpy(w->id, id, MAX_ID_LENGTH);
 
@@ -763,11 +762,6 @@ XTRA_API struct Widget *new_widget(
     if (has_frame)
     {
         int id_len = strlen(id);
-        
-        //assert((id_len + FRAME_POSTFIX_LENGTH) < MAX_ID_LENGTH && "frame creation err: invalid id: no memory to allocate frame-id"
-        //(MAX_ID_LENGTH - id_len) >= FRAME_POSTFIX_LENGTH + 1 // '1' for '\0'
-        
-        printf("max_id_length - id_len = %d, id_len=%d\n", MAX_ID_LENGTH - id_len);
         
         assert((MAX_ID_LENGTH - id_len) >= (FRAME_POSTFIX_LENGTH + 1) && "frame creation err: invalid id: no memory to allocate frame-id");
  
@@ -782,20 +776,19 @@ XTRA_API struct Widget *new_widget(
         Widget *frame = new_widget(
             frame_id,
             frame_methods,
-            is_visible,
-            false,
-            false
+            WIDGET_IS_VISIBLE
         );
         
         assert(frame != NULL);
+        
+        frame->flags |= WIDGET_IS_FRAME;
+        
         w->frame = frame;
     } else {
         w->frame = NULL;
     }
     
-    w->is_visible   = is_visible;
-    w->is_focusable = is_focusable;
-    w->has_frame    = has_frame;
+    w->flags = flags;
     
     if (has_frame)
         w->calc_layout = frame_connected_widget_calc_layout;
@@ -803,7 +796,7 @@ XTRA_API struct Widget *new_widget(
         w->calc_layout = methods.calc_layout;
 
     w->last_event_type = NONE_TYPE;
-
+    
     w->calc_cursor = methods.calc_cursor;
     w->render_func = methods.render_func;
     w->event_func  = methods.event_func;

@@ -231,6 +231,17 @@ struct InputEvent
     };
 };
 
+enum
+{
+    WIDGET_NONE_FLAGS   = 0,
+    WIDGET_IS_VISIBLE   = 1 << 0,
+    WIDGET_IS_FOCUSABLE = 1 << 1,
+    WIDGET_HAS_FRAME    = 1 << 2,
+    
+    /* not public api */
+    WIDGET_IS_FRAME  = 1 << 3
+};
+
 struct WidgetMethods
 {
     LayoutFunc calc_layout;
@@ -244,9 +255,7 @@ struct Widget
 {
     char id[MAX_ID_LENGTH];
     
-    bool is_visible;
-    bool is_focusable;
-    bool has_frame;
+    uint32_t flags;
     
     LayoutFunc calc_layout;
     CursorFunc calc_cursor;
@@ -262,6 +271,7 @@ struct Widget
     
     MouseEvent last_mouse;
     KeyEvent   last_key;
+
 
     Widget *frame;
 
@@ -306,10 +316,7 @@ XTRA_API void show_cursor(bool flag);
 XTRA_API struct Widget *new_widget(
     const char *id,
     WidgetMethods methods,
-    
-    bool is_visible,
-    bool is_focusable,
-    bool has_frame
+    uint32_t flags
 );
 XTRA_API int register_widget(Widget *w, Widget *parent);
 

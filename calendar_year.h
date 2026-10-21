@@ -584,9 +584,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
             NULL,
             NULL,
         },
-        true,
-        false,
-        true
+        WIDGET_IS_VISIBLE | WIDGET_HAS_FRAME
     );
      
     Widget *ym_field = new_widget(
@@ -598,9 +596,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
             NULL,
             NULL,
         },
-        true,
-        false,
-        true
+        WIDGET_IS_VISIBLE | WIDGET_HAS_FRAME
     );
     
     Widget *calendar_box = new_widget(
@@ -612,9 +608,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
             event_calendar,
             resize_calendar,
         },
-        true,
-        true,
-        false
+        WIDGET_IS_VISIBLE
     );
     
     Widget *left_arrow = new_widget(
@@ -626,10 +620,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
             event_leftarrow,
             NULL,
         },
-        
-        true,
-        true,
-        false
+        WIDGET_IS_VISIBLE
     );
     
     Widget *right_arrow = new_widget(
@@ -641,10 +632,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
             event_rightarrow,
             NULL,
         },
-        
-        true,
-        true,
-        false
+        WIDGET_IS_VISIBLE
     );
     
     assert(container != NULL);
