@@ -56,7 +56,6 @@
 
 /* main api structs */
 
-typedef struct Storage    Storage;
 typedef struct Event      Event;
 typedef enum   EventType  EventType;
 typedef struct App        App;
