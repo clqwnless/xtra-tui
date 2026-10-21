@@ -1107,7 +1107,7 @@ void render_widget(App *app, Widget *w)
     {
         Widget *child = w->children[i];
         
-        if (child->render_func != NULL && child->flags & WIDGET_IS_VISIBLE == true)
+        if (child->render_func != NULL && child->flags & WIDGET_IS_VISIBLE)
             child->render_func(app, child);
         
         if (child->child_count > 0)

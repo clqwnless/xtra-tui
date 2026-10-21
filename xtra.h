@@ -363,7 +363,7 @@ XTRA_API int unicode_strlen(const uint32_t *cps);
 
 // helpers (combine different widgets)
 
-XTRA_API void dispatch(App *app, Event event); // should be redefined by the user
+// XTRA_API void dispatch(App *app, Event event); // should be redefined by the user
 
 
 #ifdef LIB_NO_DLL /* ifndef part is in xtra.c */
