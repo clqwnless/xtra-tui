@@ -749,7 +749,7 @@ XTRA_API struct Widget *new_widget(
     bool is_focusable,
     bool has_frame
 )
-{
+{    
     Widget *w = malloc(sizeof(Widget));
     
     if (w == NULL)
@@ -762,22 +762,18 @@ XTRA_API struct Widget *new_widget(
     
     if (has_frame)
     {
-        /*
-        size_t id_len = strlen(id);
-        size_t frame_postfix_len = strlen(FRAME_POSTFIX);
+        int id_len = strlen(id);
         
-        char *frame_id = malloc(id_len + frame_postfix_len + 1); // +1 for null-terminator
+        //assert((id_len + FRAME_POSTFIX_LENGTH) < MAX_ID_LENGTH && "frame creation err: invalid id: no memory to allocate frame-id"
+        //(MAX_ID_LENGTH - id_len) >= FRAME_POSTFIX_LENGTH + 1 // '1' for '\0'
         
-        assert(frame_id != NULL);
+        printf("max_id_length - id_len = %d, id_len=%d\n", MAX_ID_LENGTH - id_len);
         
-        strcpy(frame_id, id);
-        strcpy(frame_id + id_len, "_frame");
-        frame_id[id_len + frame_postfix_len] = '\0';
-        */
-        
+        assert((MAX_ID_LENGTH - id_len) >= (FRAME_POSTFIX_LENGTH + 1) && "frame creation err: invalid id: no memory to allocate frame-id");
+ 
         char frame_id[MAX_ID_LENGTH];
         strncpy(frame_id, id, MAX_ID_LENGTH);
-        strncpy(frame_id + strlen(id), "_frame", MAX_ID_LENGTH);
+        strncpy(frame_id + id_len, "_frame", FRAME_POSTFIX_LENGTH);
         
         WidgetMethods frame_methods = {0};
         frame_methods.calc_layout = methods.calc_layout;
@@ -793,8 +789,6 @@ XTRA_API struct Widget *new_widget(
         
         assert(frame != NULL);
         w->frame = frame;
-        
-        //free(frame_id);
     } else {
         w->frame = NULL;
     }

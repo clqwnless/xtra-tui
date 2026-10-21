@@ -48,8 +48,10 @@
 #define MOUSE_BUTTONS (FROM_LEFT_1ST_BUTTON_PRESSED | RIGHTMOST_BUTTON_PRESSED | FROM_LEFT_2ND_BUTTON_PRESSED)
 
 #define FRAME_POSTFIX "_frame" // widgets which are frames have this postfix at the end
+#define FRAME_POSTFIX_LENGTH 6
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
+#define MAX_ID_LENGTH 32
 
 
 /* main api structs */
@@ -92,8 +94,6 @@ typedef Cursor (*CursorFunc)(Widget *);
 typedef void (*RenderFunc)(App *, Widget *);
 typedef void (*ResizeFunc)(App *, Widget *);
 typedef void (*EventFunc)(App *, Widget *, InputEvent);
-
-#define MAX_ID_LENGTH 32
 
 
 struct Coord

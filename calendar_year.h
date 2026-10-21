@@ -588,7 +588,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
         false,
         true
     );
-    
+     
     Widget *ym_field = new_widget(
         "ym_field",
         (WidgetMethods){
