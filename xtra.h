@@ -332,15 +332,18 @@ XTRA_API bool input_poll(InputEvent *event);
 
 // output
 
-XTRA_API void render_screen(App *app);
-XTRA_API void cls(void);
+/* work with screenbuffer */
 
 XTRA_API void cls_sb(App *app);
-
-XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *codepoints, size_t num, uint16_t attr);
-
 XTRA_API void clear_widget_sb(App *app, Widget *w);
 
+XTRA_API void render_widget(App *app, Widget *w);
+XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *codepoints, size_t num, uint16_t attr);
+
+/* work with the terminal itself */
+
+XTRA_API void cls(void);
+XTRA_API void render_screen(App *app);
 XTRA_API void debug(short x, short y, const wchar_t *format, ...);
 
 // geometry
@@ -375,6 +378,7 @@ XTRA_API void dispatch(App *app, Event event); // should be redefined by the use
 
 #define get_parent_rect(w) (w)->parent->calc_layout((w)->parent)
 #define find_rel_widget(w, id) find_child((w)->parent, (id))
+#define render_ui(app) render_widget((app), (app)->root)
 
 #else
 
@@ -383,6 +387,7 @@ XTRA_API uint16_t BG(bool r, bool g, bool b);
 
 XTRA_API Rect get_parent_rect(Widget *w);
 XTRA_API Widget *find_rel_widget(Widget *w, const char *id);
+XTRA_API void render_ui(App *app);
 
 #endif /* LIB_NO_DLL */
 

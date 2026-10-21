@@ -2,8 +2,6 @@
 //#include "calendar.h"
 #include "calendar_year.h"
 
-#define render_ui(app) render_widget((app), (app)->root)
-
 
 App *app;
 
@@ -19,23 +17,6 @@ Rect ws_root(Widget *w)
 
 
 
-
-
-void render_widget(App *app, Widget *w)
-{
-    for (uint32_t i = 0; i < w->child_count; i++)
-    {
-        Widget *child = w->children[i];
-        
-        if (child->render_func != NULL && child->flags & WIDGET_IS_VISIBLE == true)
-            child->render_func(app, child);
-        
-        if (child->child_count > 0)
-            render_widget(app, child);
-    }
-}
-
-
 Rect ws_calendar(Widget *w)
 {
     //printf("ws_calendar\n");
@@ -43,6 +24,9 @@ Rect ws_calendar(Widget *w)
     return layout_wrapper(0, 0, r.w, r.h);
     //return layout_wrapper(0, 0, r.w / 3, r.h);
 }
+
+
+
 
 
 

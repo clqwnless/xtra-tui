@@ -40,6 +40,11 @@ XTRA_API Widget *find_rel_widget(Widget *w, const char *id)
     return find_child(w->parent, id);
 }
 
+XTRA_API void render_ui(App *app)
+{
+    render_widget(app, app->root);
+}
+
 #endif /* LIB_NO_DLL */
 
 
@@ -1093,6 +1098,20 @@ XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *code
         cell->attr      = attr;
         
         x += 1;
+    }
+}
+
+void render_widget(App *app, Widget *w)
+{
+    for (uint32_t i = 0; i < w->child_count; i++)
+    {
+        Widget *child = w->children[i];
+        
+        if (child->render_func != NULL && child->flags & WIDGET_IS_VISIBLE == true)
+            child->render_func(app, child);
+        
+        if (child->child_count > 0)
+            render_widget(app, child);
     }
 }
 
