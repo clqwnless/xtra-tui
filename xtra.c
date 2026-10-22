@@ -594,7 +594,7 @@ void update_sb(App *app)
     reset_sb(app);
 }
 
-XTRA_API void cls_sb(App *app)
+XTRA_API void clear_sb(App *app)
 {
     size_t ncells = app->termsize.w * app->termsize.h;
     
@@ -820,7 +820,7 @@ XTRA_API void push_overlay(App *app, Widget *overlay)
 
 XTRA_API void pop_overlay(App *app, Widget *overlay)
 {
-    cls_sb(app);
+    clear_sb(app);
     deregister_widget(app->root, overlay);
 }
 

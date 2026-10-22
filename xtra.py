@@ -1,12 +1,8 @@
 # xtra.py
 # ctypes bindings for xtra.h (Windows only)
 # Python 3.10+
-#
-# Важно:
-# 1. Путь к DLL задаётся в XTRA_DLL.
-# 2. Callback-и LayoutFunc/CursorFunc с возвратом struct by value
-#    могут быть ABI-зависимыми. Для Python callback используйте shim.
-# 3. Структуры App/Widget ниже открыты полностью, как в xtra.h.
+
+from __future__ import annotations
 
 import ctypes as ct
 import os
@@ -17,10 +13,8 @@ import os
 
 
 
-#XTRA_DLL = os.environ.get("XTRA_DLL", "xtra.dll")
-#lib = ct.CDLL(XTRA_DLL)  # cdecl; для __stdcall используйте WinDLL только если API так собран
-
-lib = ct.CDLL("xtra.dll");
+lib  = ct.CDLL("./xtra.dll");
+shim = ct.CDLL("./xtra_python_shim.dll");
 
 # ---------------------------------------------------------------------
 # C scalar types
@@ -78,6 +72,8 @@ class KeyEvent(ct.Structure):
 
 class MouseEvent(ct.Structure):
     pass
+
+MAX_ID_LENGTH = 32
 
 # ---------------------------------------------------------------------
 # Enums (C enum is normally int)
@@ -267,60 +263,73 @@ Widget._fields_ = [
 # Function binding helper
 # ---------------------------------------------------------------------
 
-def _bind(name, restype, argtypes):
+def bind(name, restype, argtypes):
     fn          = getattr(lib, name)
     fn.restype  = restype
     fn.argtypes = argtypes
-    return fn
+    return fn;
 
 # ---------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------
 
-_clear_sb = _bind("clear_sb", None, [ct.POINTER(App)])
-_find_child = _bind("find_child", ct.POINTER(Widget), [ct.POINTER(Widget), CHAR_P])
-_debug_render_bits = _bind("debug_render_bits", None, [SHORT, SHORT, INT])
+_clear_sb   = bind("clear_sb", None, [ct.POINTER(App)])
+_find_child = bind("find_child", ct.POINTER(Widget), [ct.POINTER(Widget), CHAR_P])
 
-_init = _bind("init", None, [ct.POINTER(App)])
-_new_app = _bind("new_app", App, [])
+# init
 
-_get_term_size = _bind("get_term_size", Size, [])
-_is_term_resized = _bind("is_term_resized", BOOL_C, [ct.POINTER(App)])
-_on_resize = _bind("on_resize", None, [ct.POINTER(App)])
+_init    = bind("init", None, [ct.POINTER(App)])
+_new_app = bind("new_app", App, [])
 
-_match_cursor = _bind(
+# term
+
+_get_term_size   = bind("get_term_size", Size, [])
+_is_term_resized = bind("is_term_resized", BOOL_C, [ct.POINTER(App)])
+_on_resize       = bind("on_resize", None, [ct.POINTER(App)])
+
+# cursor
+
+_match_cursor = bind(
     "match_cursor",
     ct.POINTER(Widget),
     [ct.POINTER(Widget), SHORT, SHORT],
 )
-_get_cursor = _bind("get_cursor", Cursor, [ct.POINTER(App)])
-_show_cursor = _bind("show_cursor", None, [BOOL_C])
+_get_cursor   = bind("get_cursor", Cursor, [ct.POINTER(App)])
+_show_cursor  = bind("show_cursor", None, [BOOL_C])
 
-_new_widget = _bind(
+# widget
+
+_new_widget = bind(
     "new_widget",
     ct.POINTER(Widget),
     [CHAR_P, WidgetMethods, UINT32],
 )
-_register_widget = _bind(
+_register_widget = bind(
     "register_widget",
     INT,
     [ct.POINTER(Widget), ct.POINTER(Widget)],
 )
-_calc_wsabs = _bind("calc_wsabs", Rect, [ct.POINTER(Widget)])
-_deregister_widget = _bind(
+_calc_wsabs = bind("calc_wsabs", Rect, [ct.POINTER(Widget)])
+_deregister_widget = bind(
     "deregister_widget",
     None,
     [ct.POINTER(Widget), ct.POINTER(Widget)],
 )
-_pop_overlay = _bind("pop_overlay", None, [ct.POINTER(App), ct.POINTER(Widget)])
-_push_overlay = _bind("push_overlay", None, [ct.POINTER(App), ct.POINTER(Widget)])
 
-_input_poll = _bind("input_poll", BOOL_C, [ct.POINTER(InputEvent)])
+# overlay
 
-_cls_sb = _bind("cls_sb", None, [ct.POINTER(App)])
-_clear_widget_sb = _bind("clear_widget_sb", None, [ct.POINTER(App), ct.POINTER(Widget)])
-_render_widget = _bind("render_widget", None, [ct.POINTER(App), ct.POINTER(Widget)])
-_addstr = _bind(
+_pop_overlay = bind("pop_overlay", None, [ct.POINTER(App), ct.POINTER(Widget)])
+_push_overlay = bind("push_overlay", None, [ct.POINTER(App), ct.POINTER(Widget)])
+
+# input
+
+_input_poll = bind("input_poll", BOOL_C, [ct.POINTER(InputEvent)])
+
+# output
+
+_clear_widget_sb = bind("clear_widget_sb", None, [ct.POINTER(App), ct.POINTER(Widget)])
+_render_widget = bind("render_widget", None, [ct.POINTER(App), ct.POINTER(Widget)])
+_addstr = bind(
     "addstr",
     None,
     [
@@ -334,46 +343,24 @@ _addstr = _bind(
     ],
 )
 
-_cls = _bind("cls", None, [])
-_render_screen = _bind("render_screen", None, [ct.POINTER(App)])
+_cls = bind("cls", None, [])
+_render_screen = bind("render_screen", None, [ct.POINTER(App)])
 
-# C varargs: ctypes can call variadic functions, but argtypes only describe
-# the fixed arguments. Pass a format string and matching C values.
-_debug = getattr(lib, "debug")
-_debug.restype = None
-_debug.argtypes = [SHORT, SHORT, WCHAR_P]
+# geometry
 
-_is_in_rect = _bind("is_in_rect", BOOL_C, [Rect, INT, INT])
-_layout_wrapper = _bind("layout_wrapper", Rect, [INT, INT, INT, INT])
-_margin_right = _bind("margin_right", Rect, [ct.POINTER(Widget), CHAR_P])
-_margin_bottom = _bind("margin_bottom", Rect, [ct.POINTER(Widget), CHAR_P])
+_margin_right  = bind("margin_right", Rect, [ct.POINTER(Widget), CHAR_P])
+_margin_bottom = bind("margin_bottom", Rect, [ct.POINTER(Widget), CHAR_P])
 
-_utf8_decode = _bind("utf8_decode", INT, [CHAR_P, ct.POINTER(UINT32)])
-_utf8_to_unicode = _bind(
-    "utf8_to_unicode",
-    INT,
-    [CHAR_P, ct.POINTER(UINT32), SIZE_T],
-)
-_unicode_strlen = _bind("unicode_strlen", INT, [ct.POINTER(UINT32)])
-
-# These symbols exist only when building the external-DLL variant.
-# Binding them conditionally lets this module also load LIB_NO_DLL builds
-# that do not export these names.
-def _bind_optional(name, restype, argtypes):
-    try:
-        return _bind(name, restype, argtypes)
-    except AttributeError:
-        return None
-
-_FG = _bind_optional("FG", UINT16, [BOOL_C, BOOL_C, BOOL_C])
-_BG = _bind_optional("BG", UINT16, [BOOL_C, BOOL_C, BOOL_C])
-_get_parent_rect = _bind_optional("get_parent_rect", Rect, [ct.POINTER(Widget)])
-_find_rel_widget = _bind_optional(
+_FG = bind("FG", UINT16, [BOOL_C, BOOL_C, BOOL_C])
+_BG = bind("BG", UINT16, [BOOL_C, BOOL_C, BOOL_C])
+_get_parent_rect = bind("get_parent_rect", Rect, [ct.POINTER(Widget)])
+_find_rel_widget = bind(
     "find_rel_widget",
     ct.POINTER(Widget),
     [ct.POINTER(Widget), CHAR_P],
 )
-_render_ui = _bind_optional("render_ui", None, [ct.POINTER(App)])
+
+_render_ui = bind("render_ui", None, [ct.POINTER(App)])
 
 # ---------------------------------------------------------------------
 # Plain Python functions: no wrapper classes
@@ -385,8 +372,7 @@ def clear_sb(app):
 def find_child(widget, widget_id):
     return _find_child(widget, _as_bytes(widget_id))
 
-def debug_render_bits(x, y, value):
-    _debug_render_bits(x, y, value)
+
 
 def init(app):
     _init(app)
@@ -417,6 +403,8 @@ def new_widget(widget_id, methods=None, flags=WIDGET_NONE_FLAGS):
         methods = WidgetMethods()
     return _new_widget(_as_bytes(widget_id), methods, flags)
 
+
+
 def make_widget_methods(calc_layout=None, calc_cursor=None,
                         render_func=None, event_func=None, resize_func=None):
     """Build WidgetMethods. Keep callback objects alive with keep_callback().
@@ -424,16 +412,21 @@ def make_widget_methods(calc_layout=None, calc_cursor=None,
     calc_layout/calc_cursor should be C-shim trampolines or native C callbacks;
     their C ABI returns structs by value.
     """
+    
     methods = WidgetMethods()
     methods.calc_layout = _callback_address(calc_layout)
     methods.calc_cursor = _callback_address(calc_cursor)
     methods.render_func = _callback_address(render_func)
-    methods.event_func = _callback_address(event_func)
+    methods.event_func  = _callback_address(event_func)
     methods.resize_func = _callback_address(resize_func)
+    
     for cb in (calc_layout, calc_cursor, render_func, event_func, resize_func):
         if cb is not None:
             keep_callback(cb)
     return methods
+
+
+
 
 def _callback_address(callback):
     if callback is None:
@@ -459,9 +452,6 @@ def input_poll():
     event = InputEvent()
     ok = bool(_input_poll(ct.byref(event)))
     return event if ok else None
-
-def cls_sb(app):
-    _cls_sb(app)
 
 def clear_widget_sb(app, widget):
     _clear_widget_sb(app, widget)
@@ -503,25 +493,7 @@ def margin_right(widget, relative_id):
 def margin_bottom(widget, relative_id):
     return _margin_bottom(widget, _as_bytes(relative_id))
 
-def utf8_decode(source):
-    out = UINT32()
-    result = _utf8_decode(_as_bytes(source), ct.byref(out))
-    return result, out.value
-
-def utf8_to_unicode(source, bufsize):
-    buffer = (UINT32 * bufsize)()
-    result = _utf8_to_unicode(_as_bytes(source), buffer, bufsize)
-    return result, list(buffer[:max(0, min(result, bufsize))])
-
-def unicode_strlen(codepoints):
-    values = list(codepoints)
-    array_type = UINT32 * len(values)
-    array = array_type(*values)
-    return _unicode_strlen(array)
-
 def FG(r, g, b):
-    if _FG is None:
-        raise RuntimeError("FG is not exported by this DLL build.")
     return _FG(r, g, b)
 
 def BG(r, g, b):

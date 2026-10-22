@@ -1,22 +1,13 @@
-#include "xtra.h"
+#include "xtra_python_shim.h"
 
 
 #define MAX_LAYOUT_ADAPTERS 4096
 
-typedef void (*PyLayoutFunc)(Widget *w, Rect *r);
-typedef struct LayoutAdapter LayoutAdapter;
-
-struct LayoutAdapter
-{
-    Widget *widget;
-    PyLayoutFunc callback;
-};
-
-LayoutAdapter layout_adapters[MAX_LAYOUT_ADAPTERS];
-size_t layout_adapters_count = 0;;
+static LayoutAdapter layout_adapters[MAX_LAYOUT_ADAPTERS];
+static size_t layout_adapters_count = 0;;
 
 
-LayoutAdapter *find_layout_adapter(Widget *w)
+static LayoutAdapter *find_layout_adapter(Widget *w)
 {
     for (size_t i = 0; i < layout_adapters_count; ++i)
         if (layout_adapters[i].widget == w)
@@ -25,7 +16,7 @@ LayoutAdapter *find_layout_adapter(Widget *w)
     return NULL;
 }
 
-Rect layout_trampoline(Widget *w)
+XTRA_API Rect layout_trampoline(Widget *w)
 {
     Rect r = {0};
     LayoutAdapter *adapter = find_layout_adapter(w);
@@ -36,7 +27,7 @@ Rect layout_trampoline(Widget *w)
     return r;
 }
 
-void set_python_layout(Widget *w, PyLayoutFunc callback)
+XTRA_API void set_python_layout(Widget *w, PyLayoutFunc callback)
 {
     assert(layout_adapters_count < MAX_LAYOUT_ADAPTERS);
     
