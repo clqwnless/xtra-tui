@@ -4,8 +4,9 @@
 
 from __future__ import annotations
 
-import ctypes as ct
-import os
+import ctypes as ct;
+import os;
+import copy;
 
 # ---------------------------------------------------------------------
 # DLL loading
@@ -15,6 +16,8 @@ import os
 
 lib  = ct.CDLL("./xtra.dll");
 shim = ct.CDLL("./xtra_python_shim.dll");
+
+
 
 # ---------------------------------------------------------------------
 # C scalar types
@@ -137,7 +140,7 @@ WIDGET_IS_FRAME = 1 << 3
 
 RenderFunc = ct.CFUNCTYPE(None, ct.POINTER(App), ct.POINTER(Widget))
 ResizeFunc = ct.CFUNCTYPE(None, ct.POINTER(App), ct.POINTER(Widget))
-EventFunc = ct.CFUNCTYPE(
+EventFunc  = ct.CFUNCTYPE(
     None,
     ct.POINTER(App),
     ct.POINTER(Widget),
@@ -243,7 +246,7 @@ Widget._fields_ = [
     ("calc_layout", VOID_P),
     ("calc_cursor", VOID_P),
     ("render_func", RenderFunc),
-    ("event_func", EventFunc),
+    ("event_func",  EventFunc),
     ("resize_func", ResizeFunc),
     
     ("delta", RectDelta),
@@ -264,9 +267,15 @@ Widget._fields_ = [
 # ---------------------------------------------------------------------
 
 def bind(name, restype, argtypes):
-    fn          = getattr(lib, name)
-    fn.restype  = restype
-    fn.argtypes = argtypes
+    fn          = getattr(lib, name);
+    fn.restype  = restype;
+    fn.argtypes = argtypes;
+    return fn;
+
+def bind_shim(name, restype, argtypes):
+    fn          = getattr(shim, name);
+    fn.restype  = restype;
+    fn.argtypes = argtypes;
     return fn;
 
 # ---------------------------------------------------------------------
@@ -362,6 +371,14 @@ _find_rel_widget = bind(
 
 _render_ui = bind("render_ui", None, [ct.POINTER(App)])
 
+# shim
+
+PyLayoutFunc      = ct.CFUNCTYPE(None, ct.POINTER(Widget), ct.POINTER(Rect));
+set_python_layout = bind_shim("set_python_layout", None, [ct.POINTER(Widget), PyLayoutFunc]);
+layout_trampoline = bind_shim("layout_trampoline", Rect, [ct.POINTER(Widget)]);
+
+python_layout_callbacks = [];
+
 # ---------------------------------------------------------------------
 # Plain Python functions: no wrapper classes
 # ---------------------------------------------------------------------
@@ -398,40 +415,29 @@ def get_cursor(app):
 def show_cursor(flag):
     _show_cursor(flag)
 
+
+
+
+
 def new_widget(widget_id, methods=None, flags=WIDGET_NONE_FLAGS):
     if methods is None:
-        methods = WidgetMethods()
-    return _new_widget(_as_bytes(widget_id), methods, flags)
-
-
-
-def make_widget_methods(calc_layout=None, calc_cursor=None,
-                        render_func=None, event_func=None, resize_func=None):
-    """Build WidgetMethods. Keep callback objects alive with keep_callback().
-
-    calc_layout/calc_cursor should be C-shim trampolines or native C callbacks;
-    their C ABI returns structs by value.
-    """
+        methods = WidgetMethods();
+        return _new_widget(_as_bytes(widget_id), methods, flags);
     
-    methods = WidgetMethods()
-    methods.calc_layout = _callback_address(calc_layout)
-    methods.calc_cursor = _callback_address(calc_cursor)
-    methods.render_func = _callback_address(render_func)
-    methods.event_func  = _callback_address(event_func)
-    methods.resize_func = _callback_address(resize_func)
+    methods             = copy.copy(methods);
+    calc_layout_cb      = ct.cast(methods.calc_layout, PyLayoutFunc);
     
-    for cb in (calc_layout, calc_cursor, render_func, event_func, resize_func):
-        if cb is not None:
-            keep_callback(cb)
-    return methods
+    methods.calc_layout = ct.cast(layout_trampoline, ct.c_void_p).value;
+    
+    widget = _new_widget(_as_bytes(widget_id), methods, flags);
+    
+    set_python_layout(widget, calc_layout_cb);
+    
+    # callback should not be added to "python_layout_callbacks"
+    # since it is added by make_widget_methods
+    
+    return widget;
 
-
-
-
-def _callback_address(callback):
-    if callback is None:
-        return None
-    return ct.cast(callback, ct.c_void_p).value
 
 def register_widget(widget, parent):
     return _register_widget(widget, parent)
@@ -533,31 +539,51 @@ def _as_bytes(value):
 # Keep callback objects alive in this list while C can call them.
 # ---------------------------------------------------------------------
 
-PyLayoutFunc = ct.CFUNCTYPE(None, ct.POINTER(Widget), ct.POINTER(Rect))
-_python_layout_callbacks = []
 
-def make_layout_callback(python_func):
-    def callback(widget_ptr, out_ptr):
-        try:
-            rect = python_func(widget_ptr)
-            out_ptr.contents.x = rect.x
-            out_ptr.contents.y = rect.y
-            out_ptr.contents.w = rect.w
-            out_ptr.contents.h = rect.h
-        except BaseException:
-            # Exceptions must not cross the C ABI boundary.
-            out_ptr.contents.x = 0
-            out_ptr.contents.y = 0
-            out_ptr.contents.w = 0
-            out_ptr.contents.h = 0
-            # Production code should log this exception explicitly.
-    cb = PyLayoutFunc(callback)
-    _python_layout_callbacks.append(cb)
-    return cb
 
-def keep_callback(callback):
-    _python_layout_callbacks.append(callback)
-    return callback
+
+# wrapper
+
+def layout(func):
+    @PyLayoutFunc
+    @wraps(func)
+    def wrapper(widget, out):
+        r = func(widget);
+
+        out.contents.x = r.x;
+        out.contents.y = r.y;
+        out.contents.w = r.w;
+        out.contents.h = r.h;
+
+    return wrapper;
+
+def make_widget_methods(calc_layout=None, calc_cursor=None,
+                        render_func=None, event_func=None, resize_func=None):
+    """Build WidgetMethods. Keep callback objects alive with keep_callback().
+    
+    calc_layout/calc_cursor should be C-shim trampolines or native C callbacks;
+    their C ABI returns structs by value.
+    """
+    
+    methods = WidgetMethods()
+    
+    methods.calc_layout = callback_address(calc_layout)
+    methods.calc_cursor = callback_address(calc_cursor)
+    methods.render_func = callback_address(render_func)
+    methods.event_func  = callback_address(event_func)
+    methods.resize_func = callback_address(resize_func)
+    
+    for cb in (calc_layout, calc_cursor, render_func, event_func, resize_func):
+        if cb is not None:
+            _python_layout_callbacks.append(cb); # keep_callback
+    return methods
+
+def callback_address(callback):
+    if callback is None:
+        return None
+    return ct.cast(callback, ct.c_void_p).value
+
+
 
 # ---------------------------------------------------------------------
 # Sanity checks
