@@ -307,6 +307,9 @@ XTRA_API Size get_term_size(void);
 XTRA_API bool is_term_resized(App *app);
 XTRA_API void on_resize(App *app, bool resize_widgets);
 
+XTRA_API void set_term_minsize(App *app, short w, short h);
+XTRA_API bool resize(App *app);
+
 // cursor
 
 XTRA_API Widget *match_cursor(Widget *root, short x, short y);
