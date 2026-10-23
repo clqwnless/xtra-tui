@@ -405,16 +405,19 @@ XTRA_API Rect layout_wrapper(int x, int y, int w, int h);
         return layout_wrapper(__VA_ARGS__); \
     }
 
-#define LAYOUT_RIGHT(name, rel_id, ...) \
+#define LAYOUT_MARGIN_RIGHT(name, rel_id, ...) \
     Rect name(Widget *w) { \
         Rect margin = margin_right(w, (rel_id)); \
         return layout_wrapper(__VA_ARGS__); \
     }
 
-#define LAYOUT_BOTTOM(name, rel_id, ...) \
+#define LAYOUT_MARGIN_BOTTOM(name, rel_id, ...) \
     Rect name(Widget *w) { \
         Rect margin = margin_bottom(w, (rel_id)); \
         return layout_wrapper(__VA_ARGS__); \
     }
+
+#define LAYOUT_RIGHT  LAYOUT_MARGIN_RIGHT
+#define LAYOUT_BOTTOM LAYOUT_MARGIN_BOTTOM
 
 #endif /* XTRA_H */

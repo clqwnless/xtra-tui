@@ -470,22 +470,12 @@ void resize_calendar(App *app, Widget *w)
 
 /* the year && month selection widget */
 
-Rect ws_yearmonth_field(Widget *w)
-{
-    Rect rect = get_parent_rect(w);    
-    return layout_wrapper(0, 0, rect.w, 3);
-}
 
-Rect ws_leftarrow(Widget *w)
-{
-    return layout_wrapper(0, 0, 2, 1);
-}
+LAYOUT_PARENT(ws_yearmonth_field, 0, 0, parent.w, 3);
+LAYOUT_ABS(ws_leftarrow, 0, 0, 2, 1);
+LAYOUT_PARENT(ws_rightarrow, parent.w - 2, 0, 2, 1);
+LAYOUT_MARGIN_BOTTOM(ws_calendar_box, "ym_field", margin.x, margin.y, margin.w, margin.h);
 
-Rect ws_rightarrow(Widget *w)
-{
-    Rect rect = get_parent_rect(w);
-    return layout_wrapper(rect.w - 2, 0, 2, 1);
-}
 
 void dispatch_calendar(DispatchEvent event, Widget *w)
 {
@@ -559,14 +549,6 @@ void render_ym(App *app, Widget *w)
     //debug(0, 0, L"here, len: %d", unicode_strlen(str));
     
     addstr(app, w, (rect.w / 2) - (len / 2), 0, str, len, FG(1, 1, 1));
-}
-
-Rect ws_calendar_box(Widget *w)
-{
-    //return layout_wrapper(1, 1, 5, 5);
-    
-    Rect rect = margin_bottom(w, "ym_field");
-    return layout_wrapper(rect.x, rect.y, rect.w, rect.h);
 }
 
 
