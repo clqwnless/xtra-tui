@@ -348,7 +348,6 @@ XTRA_API void debug(short x, short y, const wchar_t *format, ...);
 // geometry
 
 XTRA_API bool is_in_rect(Rect r, int x, int y);
-XTRA_API Rect layout_wrapper(int x, int y, int w, int h);
 
 XTRA_API Rect margin_right(Widget *current, const char *relative_id);
 XTRA_API Rect margin_bottom(Widget *current, const char *relative_id);
@@ -378,6 +377,7 @@ XTRA_API int unicode_strlen(const uint32_t *cps);
 #define get_parent_rect(w) (w)->parent->calc_layout((w)->parent)
 #define find_rel_widget(w, id) find_child((w)->parent, (id))
 #define render_ui(app) render_widget((app), (app)->root)
+#define layout_wrapper(x, y, w, h) (Rect){(x), (y), (w), (h)}
 
 #else
 
@@ -387,6 +387,7 @@ XTRA_API uint16_t BG(bool r, bool g, bool b);
 XTRA_API Rect get_parent_rect(Widget *w);
 XTRA_API Widget *find_rel_widget(Widget *w, const char *id);
 XTRA_API void render_ui(App *app);
+XTRA_API Rect layout_wrapper(int x, int y, int w, int h);
 
 #endif /* LIB_NO_DLL */
 

@@ -45,6 +45,18 @@ XTRA_API void render_ui(App *app)
     render_widget(app, app->root);
 }
 
+XTRA_API Rect layout_wrapper(int x, int y, int w, int h)
+{
+    Rect ws;
+    
+    ws.x = x;
+    ws.y = y;
+    ws.w = w;
+    ws.h = h;
+    
+    return ws;
+}
+
 #endif /* LIB_NO_DLL */
 
 
@@ -365,18 +377,6 @@ XTRA_API int unicode_strlen(const uint32_t *cps)
 }
 
 /* geometry */
-
-XTRA_API Rect layout_wrapper(int x, int y, int w, int h)
-{
-    Rect ws;
-    
-    ws.x = x;
-    ws.y = y;
-    ws.w = w;
-    ws.h = h;
-    
-    return ws;
-}
 
 XTRA_API Rect calc_wsabs(Widget *w)
 {

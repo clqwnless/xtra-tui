@@ -3,6 +3,21 @@
 #include "calendar_year.h"
 
 
+#define LAYOUT_PARENT(name, ...) \
+    Rect name(Widget *w) { \
+        Rect parent = get_parent_rect(w); \
+        return layout_wrapper(__VA_ARGS__); \
+    }
+
+#define LAYOUT_ABS(name, ...) \
+    Rect name(Widget *w) { \
+        return layout_wrapper \
+    }
+
+
+
+
+
 App *app;
 
 Rect ws_root(Widget *w)
