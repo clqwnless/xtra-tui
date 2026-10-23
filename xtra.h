@@ -138,6 +138,9 @@ struct App
     uint16_t overlay_count;
     
     Size termsize;
+    Size mintermsize;
+    
+    bool set_min_termsize;
 
     Cell *oldScreenBuffer;
     Cell *screenBuffer;

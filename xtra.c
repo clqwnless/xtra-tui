@@ -1023,6 +1023,9 @@ void output_codepoint(
     short attr
 )
 {
+    if (x < 0 || y < 0)
+        return;
+    
     WCHAR     out[2];
     CHAR_INFO chars[2];
     
