@@ -392,5 +392,29 @@ XTRA_API Rect layout_wrapper(int x, int y, int w, int h);
 #endif /* LIB_NO_DLL */
 
 
+/* layout-functions fabric (generators) */
+
+#define LAYOUT_PARENT(name, ...) \
+    Rect name(Widget *w) { \
+        Rect parent = get_parent_rect(w); \
+        return layout_wrapper(__VA_ARGS__); \
+    }
+
+#define LAYOUT_ABS(name, ...) \
+    Rect name(Widget *w) { \
+        return layout_wrapper(__VA_ARGS__); \
+    }
+
+#define LAYOUT_RIGHT(name, rel_id, ...) \
+    Rect name(Widget *w) { \
+        Rect margin = margin_right(w, (rel_id)); \
+        return layout_wrapper(__VA_ARGS__); \
+    }
+
+#define LAYOUT_BOTTOM(name, rel_id, ...) \
+    Rect name(Widget *w) { \
+        Rect margin = margin_bottom(w, (rel_id)); \
+        return layout_wrapper(__VA_ARGS__); \
+    }
 
 #endif /* XTRA_H */

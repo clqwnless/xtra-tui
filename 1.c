@@ -3,16 +3,10 @@
 #include "calendar_year.h"
 
 
-#define LAYOUT_PARENT(name, ...) \
-    Rect name(Widget *w) { \
-        Rect parent = get_parent_rect(w); \
-        return layout_wrapper(__VA_ARGS__); \
-    }
 
-#define LAYOUT_ABS(name, ...) \
-    Rect name(Widget *w) { \
-        return layout_wrapper \
-    }
+
+
+
 
 
 
@@ -20,14 +14,9 @@
 
 App *app;
 
-Rect ws_root(Widget *w)
-{
-    //printf("termsize.w=%d\n", app->termsize.w);
-    //printf("termsize.h=%d\n", app->termsize.h);
-    
-    
-    return layout_wrapper(0, 0, app->termsize.w, app->termsize.h);
-}
+
+LAYOUT_ABS(ws_root, 0, 0, app->termsize.w, app->termsize.h);
+
 
 
 
