@@ -359,6 +359,13 @@ XTRA_API int utf8_to_unicode(const char *s, uint32_t *buffer, size_t bufsize);
 
 XTRA_API int unicode_strlen(const uint32_t *cps);
 
+// events
+
+XTRA_API int  default_focus(App *app, InputEvent *event);
+XTRA_API void dispatch_events_to_focused(App *app, InputEvent *event, int focus_ret); /* focus return code */
+XTRA_API int  default_event_handler(App *app, InputEvent *event);
+
+
 // helpers (combine different widgets)
 
 // XTRA_API void dispatch(App *app, Event event); // should be redefined by the user
@@ -419,5 +426,7 @@ XTRA_API Rect layout_wrapper(int x, int y, int w, int h);
 
 #define LAYOUT_RIGHT  LAYOUT_MARGIN_RIGHT
 #define LAYOUT_BOTTOM LAYOUT_MARGIN_BOTTOM
+
+
 
 #endif /* XTRA_H */

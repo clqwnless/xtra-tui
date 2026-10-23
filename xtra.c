@@ -1246,3 +1246,58 @@ XTRA_API void debug_render_bits(short x, short y, int val)
     }
 }
 
+/* events */
+
+#define NO_EVENT    -1
+#define NOT_FOCUSED -2
+#define FOCUSED     1
+
+int default_focus(App *app, InputEvent *event)
+{
+    bool got_event = input_poll(event);
+ 
+    if (got_event == false)
+        return NO_EVENT;
+    
+    if (event->type == MOUSE_TYPE)    
+    {
+        app->focused       = match_cursor(app->root, event->mouse.x, event->mouse.y);
+        
+        if (app->focused == NULL)
+            return NOT_FOCUSED;
+        
+        Rect focused_wsabs = calc_wsabs(app->focused);
+        
+        app->focused->last_mouse = event->mouse;
+        
+        // calculating relative coords
+        
+        app->focused->last_mouse.x -= focused_wsabs.x;
+        app->focused->last_mouse.y -= focused_wsabs.y;
+        
+        // copying in a base-event
+        
+        event->mouse = app->focused->last_mouse;
+    } else if (event->type == KEY_TYPE) {
+        app->focused->last_key = event->key;
+    }
+    
+    app->focused->last_event_type = event->type;
+    
+    return FOCUSED;
+}
+
+void dispatch_events_to_focused(App *app, InputEvent *event, int focus_ret)
+{
+    Widget *focused = app->focused;
+    if (focus_ret != NO_EVENT && focused != NULL && focused->event_func != NULL)
+        focused->event_func(app, focused, *event);
+}
+
+int default_event_handler(App *app, InputEvent *event)
+{
+    int ret = default_focus(app, event);
+    dispatch_events_to_focused(app, event, ret);
+    return ret;
+}
+
