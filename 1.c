@@ -9,6 +9,7 @@
 
 
 
+
 App *app;
 
 
@@ -21,7 +22,7 @@ int main(void) {
     app   = &a;
     
     init(app);
-   
+    
     Widget *root     = new_widget("root",     (WidgetMethods){ws_root, NULL, NULL, NULL, NULL}, WIDGET_NONE_FLAGS);
     Widget *calendar = new_calendar("calendar", ws_calendar);
     

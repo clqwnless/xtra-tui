@@ -432,8 +432,9 @@ XTRA_API Rect layout_wrapper(int x, int y, int w, int h);
         return layout_wrapper(__VA_ARGS__); \
     }
 
-#define LAYOUT_RIGHT  LAYOUT_MARGIN_RIGHT
-#define LAYOUT_BOTTOM LAYOUT_MARGIN_BOTTOM
+#define LAYOUT_DEFAULT LAYOUT_ABS
+#define LAYOUT_RIGHT   LAYOUT_MARGIN_RIGHT
+#define LAYOUT_BOTTOM  LAYOUT_MARGIN_BOTTOM
 
 
 

@@ -41,7 +41,7 @@ XTRA_API Widget *find_rel_widget(Widget *w, const char *id)
 }
 
 XTRA_API void render_ui(App *app)
-{
+{   
     render_widget(app, app->root);
 }
 
@@ -1199,6 +1199,8 @@ XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *code
 
 void render_widget(App *app, Widget *w)
 {
+    assert(w != NULL); // for example, if root is NULL then raise an exception
+    
     for (uint32_t i = 0; i < w->child_count; i++)
     {
         Widget *child = w->children[i];
