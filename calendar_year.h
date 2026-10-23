@@ -50,25 +50,6 @@ const uint32_t *months_names[13] = {
     (const uint32_t[]){'D', 'e', 'c', 0},
 };
 
-uint32_t *unicode_conv(const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    
-    static char     utf8_buffer[4096];  
-    static uint32_t cp_buffer[4096];
-    
-    vsnprintf(utf8_buffer, ARRAY_SIZE(utf8_buffer), fmt, args);
-    
-    //debug(0, 14, L"utf8_buffer len: %d, array_size: %d", strlen(utf8_buffer), ARRAY_SIZE(utf8_buffer));
-    
-    utf8_to_unicode(utf8_buffer, cp_buffer, ARRAY_SIZE(cp_buffer));
-    
-    va_end(args);
-    
-    return cp_buffer;
-}
-
 
 
 struct Mapping

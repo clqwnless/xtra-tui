@@ -289,9 +289,9 @@ struct Widget
 /* helpers */
 
 XTRA_API void clear_sb(App *app);
-
 XTRA_API Widget *find_child(Widget *w, const char *id);
-XTRA_API void debug_render_bits(short x, short y, int val);
+
+void debug_render_bits(short x, short y, int val);
 
 // init & create & new
 
@@ -305,7 +305,7 @@ XTRA_API Size get_term_size(void);
 // resize
 
 XTRA_API bool is_term_resized(App *app);
-XTRA_API void on_resize(App *app);
+XTRA_API void on_resize(App *app, bool resize_widgets);
 
 // cursor
 
@@ -361,6 +361,8 @@ XTRA_API int utf8_decode(const char *source, uint32_t *out);
 XTRA_API int utf8_to_unicode(const char *s, uint32_t *buffer, size_t bufsize);
 
 XTRA_API int unicode_strlen(const uint32_t *cps);
+
+uint32_t *unicode_conv(const char *fmt, ...); /* warning: thread-unsafe */
 
 // events
 

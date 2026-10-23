@@ -5,9 +5,6 @@
 #include <time.h>
 
 
-#define get_timestamp() (uint64_t)time(NULL);
-
-
 
 
 
@@ -37,37 +34,41 @@ bool less_than_minsize(App *app)
 
 bool resize(App *app)
 {
-    static uint64_t last_check_time = 0;
+    bool is_less      = less_than_minsize(app);
+    bool term_resized = is_term_resized(app);
 
-    uint64_t current_time = get_timestamp();
-
-    bool is_less = less_than_minsize(app);
-
-    if (is_less && current_time > last_check_time)
+    if (term_resized)
     {
-        if (current_time > last_check_time)
-        {
+        /*
+        
+        if the terminal size is less than minimum-size then it doesn't make any sense to resize widget tree
+        since widgets should not be rendered anyway
+        
+        that is, if the current function returns false -> not render screen
+        else: render
+        
+        */
+        
+        on_resize(app, !is_less);
+    }
+
+    if (is_less)
+    {
+        if (term_resized)
             cls();
-            last_check_time = current_time;
-        }
         
         Size current = app->termsize;
         Size min     = app->mintermsize;
         
         int y = current.h / 2 - 1;
         
+        render_screen(app);
+        
         debug(0,  y,     L"err: expected: minimum width:  %d", min.w);         
         debug(15, y + 1, L"minimum height: %d", min.h);
         debug(0,  y + 3, L"current width:  %d",  current.w);
         debug(0,  y + 4, L"current height: %d", current.h);
     }
-    
-    if (is_term_resized(app))
-    {
-        clear_sb(app);
-        on_resize(app);
-    }
-    
     
     /*
       invert (if is_less is true then the resizing is failed)
@@ -95,7 +96,7 @@ int main(void) {
     
 
     cls(); 
-    on_resize(app);
+    on_resize(app, true);
     
     set_term_minsize(app, 40, 10);
     

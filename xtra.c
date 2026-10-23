@@ -300,6 +300,23 @@ XTRA_API int unicode_to_wchar(uint32_t codepoint, WCHAR out[2])
     return 2;
 }
 
+uint32_t *unicode_conv(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    
+    static char     utf8_buffer[4096];  
+    static uint32_t cp_buffer[4096];
+    
+    vsnprintf(utf8_buffer, ARRAY_SIZE(utf8_buffer), fmt, args);
+    
+    utf8_to_unicode(utf8_buffer, cp_buffer, ARRAY_SIZE(cp_buffer));
+    
+    va_end(args);
+    
+    return cp_buffer;
+}
+
 // works with strings
 
 XTRA_API int utf8_to_unicode(const char *s, uint32_t *buffer, size_t bufsize)
@@ -648,10 +665,12 @@ void resize_widget_tree(App *app, Widget *w)
     }
 }
 
-XTRA_API void on_resize(App *app)
+XTRA_API void on_resize(App *app, bool resize_widgets)
 {
     update_sb(app);
-    resize_widget_tree(app, app->root);
+    
+    if (resize_widgets)
+        resize_widget_tree(app, app->root);
 }
 
 XTRA_API bool is_term_resized(App *app)
@@ -1050,9 +1069,16 @@ XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *code
 {
     if (x < 0 || y < 0)
         return;
-    
+
     Rect wsabs       = calc_wsabs(w);
-    Rect wsparentabs = calc_wsabs(w->parent);
+    Rect wsparentabs;
+    
+    if (w->parent != NULL)
+    {
+        wsparentabs = calc_wsabs(w->parent);
+    } else {
+        wsparentabs = wsabs;
+    }
     
     //printf("wsabs.w=%d, wsabs.h=%d\n", wsabs.w, wsabs.h);
     
@@ -1066,9 +1092,7 @@ XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *code
         и потом там первый символ зарендерить где нельзя уже рендерить
         (например на frame) - и только потом уже на следующей итерации оно завершится
         (что неправильно по сути)
-        
-        
-        
+ 
         */
         
         uint32_t cp = codepoints[i];
