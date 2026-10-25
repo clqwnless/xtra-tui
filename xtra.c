@@ -397,11 +397,15 @@ XTRA_API int unicode_strlen(const uint32_t *cps)
 
 XTRA_API Rect calc_wsabs(Widget *w)
 {
+    assert(w != NULL && "calc_wsabs: widget shouldn't be NULL");
+    
     Rect wsabs = {0, 0, 0, 0};
     
     /* get width and size */
     
     Rect ws = w->calc_layout(w);
+    
+    printf("got\n");
     
     wsabs.w = ws.w;
     wsabs.h = ws.h;
@@ -409,7 +413,11 @@ XTRA_API Rect calc_wsabs(Widget *w)
     /* iterative increment of x and y */
     
     while (w != NULL)
-    {    
+    {
+        //printf("wsabs: calc_layout: w->id: %s\n", w->id);
+        
+        assert(w->calc_layout != NULL);
+        
         Rect ws = w->calc_layout(w);
         
         wsabs.x += ws.x;
@@ -417,6 +425,8 @@ XTRA_API Rect calc_wsabs(Widget *w)
         
         w = w->parent;
     }
+    
+    printf("return wsabs\n");
     
     return wsabs;
 }
@@ -1145,6 +1155,8 @@ XTRA_API void addstr(App *app, Widget *w, short x, short y, const uint32_t *code
 
     Rect wsabs       = calc_wsabs(w);
     Rect wsparentabs;
+    
+    
     
     if (w->parent != NULL)
     {

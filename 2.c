@@ -4,50 +4,28 @@
 App *app;
 
 
-/*
-#define init_button(w) \
-    Button *button; \
-    assert(w->data != NULL); \
-    button = (Button*)w->data; \
-*/
-
-
-#define init_button(w) init_data_wrapper(w, struct Button, button)
-
+#define init_button(w) init_data_wrapper(w, Button, button)
 
 #define init_button_stack(w) ButtonStack *button_stack = ((Button*)w->data)->stack_ptr
 
-#define LAYOUT_INSIDE(func_name, w, h) LAYOUT_PARENT(func_name, 0, 0, (w), (h))
 #define BUTTON(name, content, rel) LAYOUT_RIGHT(name, rel, 0, 0, sizeof(content) - 1, 1)
+
+#define WIDGET_NO_METHODS (WidgetMethods){}
 
 #define BUTTON_STACK_SIZE 8
 
-//LAYOUT_DEFAULT(ws_root, 0, 0, app->termsize.w, app->termsize.h);
-//LAYOUT_PARENT(ws_panel_container, 1, 1, parent.w - 1, 1);
+
 
 Rect ws_root(Widget *w)
 {
+    printf("in ws_root\n");
     return layout_wrapper(0, 0, app->termsize.w, app->termsize.h);
 }
 
-
 Rect ws_main_opt(Widget *w)
 {
-    return layout_wrapper(0, 0, 10, 1);
+    return layout_wrapper(0, 0, 4, 1);
 }
-
-
-// buttons
-
-//LAYOUT_DEFUALT(ws_main_opt, 0, 0, sizeof("main"), 1);
-
-//LAYOUT_INSIDE(ws_main_opt, sizeof("main"), 1);
-
-/*
-BUTTON(ws_calendar_opt,   "calendar",   "ws_main_opt");
-BUTTON(ws_extensions_opt, "extensions", "ws_calendar_opt");
-BUTTON(ws_settings_opt,   "settings",   "ws_extensions_opt");
-*/
 
 
 typedef struct Button Button;
@@ -123,17 +101,14 @@ void button_event(App *app, Widget *w, InputEvent event)
 }
 
 void button_render(App *app, Widget *w)
-{
-    printf("in button render, w->data: %d\n", w->data);
-    
+{    
     init_button(w);
 
-    printf("w->id: %s, button->text: %s\n", w->id, button->text);
     
     uint32_t *cp = unicode_conv(button->text);
     int cp_len   = unicode_strlen(cp);
 
-    
+    printf("w->id: %s, button->text: %s, cp_len=%d\n", w->id, button->text, cp_len);
     
     int c = 'A';
     
@@ -167,14 +142,12 @@ int main(void)
 {
     App a = new_app();
     app = &a;
-
+    
     init(app);
     
     Widget *root = new_widget(
         "root",
-        (WidgetMethods){
-            .calc_layout = ws_root
-        },
+        WIDGET_NO_METHODS,
         WIDGET_NONE_FLAGS
     );
 
@@ -189,16 +162,32 @@ int main(void)
         },
         WIDGET_IS_VISIBLE | WIDGET_IS_FOCUSABLE
     );
-    
-    app->root = root;
-    
+
     register_widget(opt_main, root);
+
+
+    // init button stack
+    ButtonStack stack = {0};
+    stack.data[0] = (Button){
+        .stack_ptr        = &stack,
+        .color_highlight  = FG(0, 1, 0),
+        .color_default    = FG(1, 1, 1),
+        .on_pressed_event = OPEN_MAIN,
+        .text             = "main",
+    };
+    stack.nbuttons = 1;
     
-    printf("got, opt_main: %d, root: %d\n", opt_main, root);
+    opt_main->data = (void*)&stack.data[0];
     
+    app->root = root; 
     
-    //on_resize(app, true);
+    printf("got111, app->termsize.w: %d, app->termsize.h: %d\n", app->termsize.w, app->termsize.h);
     
+    //cls(); 
+
+    //on_resize(app, false);
+    //set_term_minsize(app, 40, 10);
+
     InputEvent event;
 
     
