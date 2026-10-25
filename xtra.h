@@ -53,6 +53,10 @@
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 #define MAX_ID_LENGTH 32
 
+#define init_data_wrapper(widget, type, var_name) \
+    assert(widget->data != NULL); \
+    type *var_name = (type*)widget->data;
+
 
 /* main api structs */
 
@@ -93,6 +97,10 @@ typedef Cursor (*CursorFunc)(Widget *);
 typedef void (*RenderFunc)(App *, Widget *);
 typedef void (*ResizeFunc)(App *, Widget *);
 typedef void (*EventFunc)(App *, Widget *, InputEvent);
+
+typedef void (*EntryFunc)(Widget *); // focus
+typedef void (*ExitFunc)(Widget *);  // unfocus
+
 
 
 struct Coord
@@ -251,6 +259,8 @@ struct WidgetMethods
     RenderFunc render_func;
     EventFunc  event_func;
     ResizeFunc resize_func;
+    EntryFunc  on_entry;
+    ExitFunc   on_exit;
 };
 
 struct Widget
@@ -264,6 +274,8 @@ struct Widget
     RenderFunc render_func;
     EventFunc  event_func;
     ResizeFunc resize_func;
+    EntryFunc  on_entry;
+    ExitFunc   on_exit;
 
     RectDelta  delta;
 

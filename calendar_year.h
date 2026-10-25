@@ -541,11 +541,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     Widget *container = new_widget(
         id,
         (WidgetMethods){
-            layout_func,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
+            .calc_layout = layout_func
         },
         WIDGET_IS_VISIBLE | WIDGET_HAS_FRAME
     );
@@ -553,11 +549,8 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     Widget *ym_field = new_widget(
         "ym_field",
         (WidgetMethods){
-            ws_yearmonth_field,
-            NULL,
-            render_ym,
-            NULL,
-            NULL,
+            .calc_layout = ws_yearmonth_field,
+            .render_func = render_ym
         },
         WIDGET_IS_VISIBLE | WIDGET_HAS_FRAME
     );
@@ -565,11 +558,10 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     Widget *calendar_box = new_widget(
         "calendar_box",
         (WidgetMethods){
-            ws_calendar_box,
-            NULL,
-            render_calendar,
-            event_calendar,
-            resize_calendar,
+            .calc_layout = ws_calendar_box,
+            .render_func = render_calendar,
+            .event_func  = event_calendar,
+            .resize_func = resize_calendar
         },
         WIDGET_IS_VISIBLE
     );
@@ -577,11 +569,9 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     Widget *left_arrow = new_widget(
         "left_arrow",
         (WidgetMethods){
-            ws_leftarrow,
-            NULL,
-            render_leftarrow,
-            event_leftarrow,
-            NULL,
+            .calc_layout = ws_leftarrow,
+            .render_func = render_leftarrow,
+            .event_func  = event_leftarrow
         },
         WIDGET_IS_VISIBLE
     );
@@ -589,11 +579,9 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     Widget *right_arrow = new_widget(
         "right_arrow",
         (WidgetMethods){
-            ws_rightarrow,
-            NULL,
-            render_rightarrow,
-            event_rightarrow,
-            NULL,
+            .calc_layout = ws_rightarrow,
+            .render_func = render_rightarrow,
+            .event_func  = event_rightarrow
         },
         WIDGET_IS_VISIBLE
     );

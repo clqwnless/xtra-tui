@@ -598,7 +598,7 @@ void update_sb(App *app)
     
     free(app->oldScreenBuffer);
     free(app->screenBuffer);
-    
+
     size_t ncells = app->termsize.w * app->termsize.h;
     size_t sbSize = sizeof(Cell) * ncells;
     
@@ -849,8 +849,9 @@ XTRA_API struct Widget *new_widget(
     
     strncpy(w->id, id, MAX_ID_LENGTH);
 
-    w->parent      = NULL;
-    w->children    = NULL;
+    w->parent   = NULL;
+    w->children = NULL;
+    w->data     = NULL;
     
     if (has_frame)
     {
@@ -894,6 +895,9 @@ XTRA_API struct Widget *new_widget(
     w->render_func = methods.render_func;
     w->event_func  = methods.event_func;
     w->resize_func = methods.resize_func;
+    
+    w->on_entry    = methods.on_entry;
+    w->on_exit     = methods.on_exit;
 
     w->child_count = 0;
     
@@ -1395,7 +1399,8 @@ void dispatch_events_to_focused(App *app, InputEvent *event, int focus_ret)
 int default_event_handler(App *app, InputEvent *event)
 {
     int ret = default_focus(app, event);
-    dispatch_events_to_focused(app, event, ret);
+    if (ret == FOCUSED)
+        dispatch_events_to_focused(app, event, ret);
     return ret;
 }
 
