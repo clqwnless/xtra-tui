@@ -32,7 +32,8 @@ XTRA_API uint16_t BG(bool r, bool g, bool b)
 
 XTRA_API Rect get_parent_rect(Widget *w)
 {
-    return w->parent->calc_layout(w->parent);
+    return _calc_layout(w->parent);
+    //return w->parent->calc_layout(w->parent);
 }
 
 XTRA_API Widget *find_rel_widget(Widget *w, const char *id)
@@ -66,14 +67,14 @@ XTRA_API Rect layout_wrapper(int x, int y, int w, int h)
 
 Rect frame_connected_widget_calc_layout(Widget *w)
 {
-    Rect rect = w->frame->calc_layout(w->frame);
+    Rect rect = _calc_layout(w->frame);
     
     return layout_wrapper(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2);
 }
 
 void render_frame_default_func(App *app, Widget *w)
 {
-    Rect rect = w->calc_layout(w);
+    Rect rect = _calc_layout(w);
 
     uint32_t c;
     uint16_t attr = FG(1, 0, 1);
@@ -397,15 +398,11 @@ XTRA_API int unicode_strlen(const uint32_t *cps)
 
 XTRA_API Rect calc_wsabs(Widget *w)
 {
-    assert(w != NULL && "calc_wsabs: widget shouldn't be NULL");
-    
     Rect wsabs = {0, 0, 0, 0};
     
     /* get width and size */
     
-    Rect ws = w->calc_layout(w);
-    
-    printf("got\n");
+    Rect ws = _calc_layout(w);
     
     wsabs.w = ws.w;
     wsabs.h = ws.h;
@@ -416,17 +413,15 @@ XTRA_API Rect calc_wsabs(Widget *w)
     {
         //printf("wsabs: calc_layout: w->id: %s\n", w->id);
         
-        assert(w->calc_layout != NULL);
+        //assert(w->calc_layout != NULL);
         
-        Rect ws = w->calc_layout(w);
+        Rect ws = _calc_layout(w);
         
         wsabs.x += ws.x;
         wsabs.y += ws.y;
         
         w = w->parent;
     }
-    
-    printf("return wsabs\n");
     
     return wsabs;
 }
@@ -440,13 +435,13 @@ XTRA_API bool is_in_rect(Rect rect, int x, int y)
     Widget *rel = find_rel_widget(current, relative_id); \
     assert(rel != NULL && "margin err: not found"); \
     Rect rect_rel    = calc_outer_rect(rel); \
-    Rect rect_parent = current->parent->calc_layout(current->parent);
+    Rect rect_parent = _calc_layout(current->parent);
 
 Rect calc_outer_rect(Widget *w)
 {
     if (w->flags & WIDGET_HAS_FRAME)
-        return w->frame->calc_layout(w->frame);
-    return w->calc_layout(w);
+        return _calc_layout(w->frame);
+    return _calc_layout(w);
 }
 
 XTRA_API Rect margin_right(Widget *current, const char *relative_id)
@@ -712,10 +707,18 @@ XTRA_API void set_term_minsize(App *app, short w, short h)
 
 XTRA_API bool resize(App *app)
 {
-    bool is_less      = less_than_minsize(app);
-    bool term_resized = is_term_resized(app);
+    bool is_less           = less_than_minsize(app);
+    
+    /*
+      invert (if is_less is true then the resizing is failed)
+      if is_less is false then everything is fine
+      (the termsize corresponds (or is greater than) to the minsize)
+    */   
+    
+    bool is_valid_termsize = !is_less;
+    bool term_resized      = is_term_resized(app);
 
-    if (term_resized)
+    if (term_resized || app->term_already_resized == false)
     {
         /*
         
@@ -727,8 +730,11 @@ XTRA_API bool resize(App *app)
         
         */
         
-        on_resize(app, !is_less);
+        on_resize(app, is_valid_termsize);
+        app->term_already_resized = true;
     }
+    
+    
 
     if (is_less)
     {
@@ -748,13 +754,7 @@ XTRA_API bool resize(App *app)
         debug(0,  y + 4, L"current height: %d", current.h);
     }
     
-    /*
-      invert (if is_less is true then the resizing is failed)
-      if is_less is false then everything is fine
-      (the termsize corresponds (or is greater than) to the minsize)
-    */
-   
-    return !is_less;
+    return is_valid_termsize;
 }
 
 

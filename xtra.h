@@ -57,6 +57,7 @@
     assert(widget->data != NULL); \
     type *var_name = (type*)widget->data;
 
+#define _calc_layout(w) (assert(w != NULL), assert(w->calc_layout != NULL), w->calc_layout(w))
 
 /* main api structs */
 
@@ -149,6 +150,7 @@ struct App
     Size mintermsize;
     
     bool set_min_termsize;
+    bool term_already_resized;
 
     Cell *oldScreenBuffer;
     Cell *screenBuffer;
@@ -401,7 +403,7 @@ XTRA_API int  default_event_handler(App *app, InputEvent *event);
                     ((g) ? BACKGROUND_GREEN : 0) | \
                     ((b) ? BACKGROUND_BLUE : 0)
 
-#define get_parent_rect(w) (w)->parent->calc_layout((w)->parent)
+#define get_parent_rect(w) _calc_layout(w->parent)
 #define find_rel_widget(w, id) find_child((w)->parent, (id))
 #define render_ui(app) render_widget((app), (app)->root)
 #define layout_wrapper(x, y, w, h) (Rect){(x), (y), (w), (h)}
