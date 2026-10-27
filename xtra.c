@@ -566,15 +566,10 @@ void *_match_cursor(Widget *current_node, Widget **result, int current_depth, in
 XTRA_API Widget *match_cursor(Widget *root, short x, short y)
 {
     Widget *result = NULL;
-    
-    int depth_max     = 0;
-    
+    int depth_max  = 0;
     _match_cursor(root, &result, 0, &depth_max, x, y);
     
     return result;
-    
-    //Widget *deepest = deepest_right(root);
-    //return _match_cursor(deepest->parent, root, x, y);
 }
 
 XTRA_API Cursor get_cursor(App *app)
@@ -824,6 +819,9 @@ XTRA_API App new_app(void)
 
 XTRA_API int register_widget(Widget *w, Widget *parent)
 {
+    if (!w || !parent)
+        return 0;
+    
     //printf("registering id: %s, parent id: %s\n", w->id, parent->id);
     
     w->parent      = parent;
@@ -858,8 +856,11 @@ XTRA_API int register_widget(Widget *w, Widget *parent)
     return 0;
 }
 
-XTRA_API void deregister_widget(Widget *parent, Widget *w)
+XTRA_API void deregister_widget(Widget *w, Widget *parent)
 {
+    if (!w || !parent)
+        return;
+    
     for (uint32_t i = 0; i < parent->child_count; )
     {
         if (parent->children[i] == w || (w->flags & WIDGET_HAS_FRAME && parent->children[i] == w->frame))
@@ -884,8 +885,10 @@ XTRA_API struct Widget *new_widget(
 {    
     Widget *w = malloc(sizeof(Widget));
     
-    if (w == NULL)
-        return (Widget*)-1;
+    assert(w != NULL);
+    
+    //if (w == NULL)
+    //    return (Widget*)-1;
     
     bool has_frame = (flags & WIDGET_HAS_FRAME) != 0;
     

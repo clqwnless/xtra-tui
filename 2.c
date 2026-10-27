@@ -36,6 +36,10 @@ void button_dispatch(int event)
         case OPEN_CALENDAR:
             register_widget(calendar, root);
             break;
+        case OPEN_MAIN:
+            deregister_widget(calendar, root);
+            clear_sb(app);
+            break;
     }
     
     //debug(0, 0, L"got event: %d", event);
@@ -102,7 +106,7 @@ int main(void)
     
     cls(); 
 
-    on_resize(app, false);
+    on_resize(app, true);
     set_term_minsize(app, 40, 10);
 
     InputEvent event;

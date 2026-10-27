@@ -52,9 +52,6 @@ int main(void) {
         
         render_ui(app);
         render_screen(app);
-        
-        
-        //Sleep(40);
     }
     
     
