@@ -1373,24 +1373,41 @@ int default_focus(App *app, InputEvent *event)
     
     if (event->type == MOUSE_TYPE)    
     {
-        app->focused       = match_cursor(app->root, event->mouse.x, event->mouse.y);
-        
-        if (app->focused == NULL)
+        Widget *last_focused = app->focused;
+        Widget *focused      = match_cursor(app->root, event->mouse.x, event->mouse.y);
+
+        if (focused == NULL)
+        {
+            if (ENABLE_ON_ENTRY_FUNCS && last_focused != NULL && last_focused->on_exit != NULL)
+            {
+                _on_exit(last_focused);
+            }
+            
             return NOT_FOCUSED;
+        }
         
-        Rect focused_wsabs = calc_wsabs(app->focused);
+        if (ENABLE_ON_ENTRY_FUNCS && focused->on_entry != NULL)
+        {
+            _on_entry(focused);
+        }
         
-        app->focused->last_mouse = event->mouse;
+        Rect focused_wsabs = calc_wsabs(focused);
+        
+        focused->last_mouse = event->mouse;
         
         // calculating relative coords
         
-        app->focused->last_mouse.x -= focused_wsabs.x;
-        app->focused->last_mouse.y -= focused_wsabs.y;
+        focused->last_mouse.x -= focused_wsabs.x;
+        focused->last_mouse.y -= focused_wsabs.y;
         
         // copying in a base-event
         
-        event->mouse = app->focused->last_mouse;
-    } else if (event->type == KEY_TYPE) {
+        event->mouse = focused->last_mouse;
+        
+        // change ptr in App*
+        
+        app->focused = focused;
+    } else if (event->type == KEY_TYPE && app->focused != NULL) {
         app->focused->last_key = event->key;
     }
     
@@ -1402,6 +1419,7 @@ int default_focus(App *app, InputEvent *event)
 void dispatch_events_to_focused(App *app, InputEvent *event, int focus_ret)
 {
     Widget *focused = app->focused;
+    
     if (focus_ret != NO_EVENT && focused != NULL && focused->event_func != NULL)
         focused->event_func(app, focused, *event);
 }
@@ -1410,7 +1428,9 @@ int default_event_handler(App *app, InputEvent *event)
 {
     int ret = default_focus(app, event);
     if (ret == FOCUSED)
+    {
         dispatch_events_to_focused(app, event, ret);
+    }
     return ret;
 }
 

@@ -1,6 +1,7 @@
 #include "xtra.h"
 
 
+
 App *app;
 
 
@@ -182,11 +183,11 @@ int main(void)
     
     while (true)
     {
-        //bool resized = resize(app);
-        //if (!resized)
-        //    continue;
+        bool resized = resize(app);
+        if (!resized)
+            continue;
 
-        //int ret = default_event_handler(app, &event);
+        int ret = default_event_handler(app, &event);
 
         render_ui(app);
         render_screen(app);

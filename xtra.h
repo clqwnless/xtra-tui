@@ -10,6 +10,9 @@
 #include <stdlib.h>
 
 
+#define ENABLE_ON_ENTRY_FUNCS true
+
+
 #if defined(_WIN32)
     #if defined(LIB_BUILD)
         #define XTRA_API __declspec(dllexport)
@@ -57,7 +60,10 @@
     assert(widget->data != NULL); \
     type *var_name = (type*)widget->data;
 
-#define _calc_layout(w) (assert(w != NULL), assert(w->calc_layout != NULL), w->calc_layout(w))
+#define _calc_layout(w) (assert((w) != NULL), assert((w)->calc_layout != NULL), (w)->calc_layout((w)))
+#define _calc_cursor(w) (assert((w) != NULL), assert((w)->calc_cursor != NULL), (w)->calc_cursor((w)))
+#define _on_entry(w)    (assert((w) != NULL), assert((w)->on_entry    != NULL), (w)->on_entry((w)))
+#define _on_exit(w)     (assert((w) != NULL), assert((w)->on_exit     != NULL), (w)->on_exit((w)))
 
 /* main api structs */
 
