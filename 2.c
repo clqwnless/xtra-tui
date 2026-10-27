@@ -10,15 +10,12 @@ App *app;
 
 #define BUTTON(name, content, rel) LAYOUT_RIGHT(name, rel, 0, 0, sizeof(content) - 1, 1)
 
-#define WIDGET_NO_METHODS (WidgetMethods){}
-
 #define BUTTON_STACK_SIZE 8
 
 
 
 Rect ws_root(Widget *w)
 {
-    printf("in ws_root\n");
     return layout_wrapper(0, 0, app->termsize.w, app->termsize.h);
 }
 
@@ -108,15 +105,7 @@ void button_render(App *app, Widget *w)
     uint32_t *cp = unicode_conv(button->text);
     int cp_len   = unicode_strlen(cp);
 
-    printf("w->id: %s, button->text: %s, cp_len=%d\n", w->id, button->text, cp_len);
-    
-    int c = 'A';
-    
-    addstr(app, w, 0, 0, &c, 1, FG(1, 1, 1));
-    
-    printf("after rendering\n");
-    
-    /*
+   
     if (button->selecting || button->pressed)
     {
         addstr(app, w, 0, 0, cp, cp_len, button->color_highlight);
@@ -126,7 +115,7 @@ void button_render(App *app, Widget *w)
         addstr(app, w, 0, 0, cp, cp_len, button->color_default);
         //Sleep(10000);
     }
-    */
+    
 }
 
 
@@ -147,7 +136,9 @@ int main(void)
     
     Widget *root = new_widget(
         "root",
-        WIDGET_NO_METHODS,
+        (WidgetMethods){
+            .calc_layout=ws_root
+        },
         WIDGET_NONE_FLAGS
     );
 
@@ -180,8 +171,6 @@ int main(void)
     opt_main->data = (void*)&stack.data[0];
     
     app->root = root; 
-    
-    printf("got111, app->termsize.w: %d, app->termsize.h: %d\n", app->termsize.w, app->termsize.h);
     
     //cls(); 
 

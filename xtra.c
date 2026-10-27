@@ -413,8 +413,6 @@ XTRA_API Rect calc_wsabs(Widget *w)
     {
         //printf("wsabs: calc_layout: w->id: %s\n", w->id);
         
-        //assert(w->calc_layout != NULL);
-        
         Rect ws = _calc_layout(w);
         
         wsabs.x += ws.x;

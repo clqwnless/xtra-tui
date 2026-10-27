@@ -33,7 +33,8 @@ int main(void) {
     
 
     cls(); 
-    on_resize(app, true);
+    //on_resize(app, true);
+    
     
     set_term_minsize(app, 40, 10);
     
@@ -41,14 +42,17 @@ int main(void) {
 
     while (true)
     {
+        
+        
         bool resized = resize(app);
         if (!resized)
             continue;
-
+        
         int ret = default_event_handler(app, &event);
-
+        
         render_ui(app);
         render_screen(app);
+        
         
         //Sleep(40);
     }
