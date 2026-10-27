@@ -77,7 +77,7 @@ void render_frame_default_func(App *app, Widget *w)
     Rect rect = _calc_layout(w);
 
     uint32_t c;
-    uint16_t attr = FG(1, 0, 1);
+    uint16_t attr = FG(1, 1, 1);
     
     c = BOX_TL; addstr(app, w, 0, 0, &c, 1, attr);
     c = BOX_TR; addstr(app, w, rect.w - 1, 0, &c, 1, attr);
@@ -728,6 +728,7 @@ XTRA_API bool resize(App *app)
         
         */
         
+        cls();
         on_resize(app, is_valid_termsize);
         app->term_already_resized = true;
     }

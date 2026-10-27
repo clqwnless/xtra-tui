@@ -1,10 +1,17 @@
 #include "xtra.h"
 #include "button.h"
+#include "calendar_year.h"
 
 
 App *app;
+Widget *calendar;
+Widget *root;
 
 
+enum {
+    OPEN_MAIN,
+    OPEN_CALENDAR
+};
 
 
 Rect ws_root(Widget *w)
@@ -12,10 +19,28 @@ Rect ws_root(Widget *w)
     return layout_wrapper(0, 0, app->termsize.w, app->termsize.h);
 }
 
-BUTTON_CONTAINER(ws_panel, 10, 5, parent.w - 10, parent.h - 5);
+BUTTON_CONTAINER(ws_panel, 0, 0, parent.w, 3);
 
 BUTTON_START(ws_main_opt, "main");
 BUTTON_NEXT(ws_calendar_opt, "ws_main_opt", "calendar");
+
+
+LAYOUT_MARGIN_BOTTOM(ws_calendar, "panel", margin.x, margin.y, margin.w, margin.h);
+
+
+
+void button_dispatch(int event)
+{
+    switch (event)
+    {
+        case OPEN_CALENDAR:
+            register_widget(calendar, root);
+            break;
+    }
+    
+    //debug(0, 0, L"got event: %d", event);
+}
+
 
 
 
@@ -26,9 +51,9 @@ int main(void)
     
     init(app);
     
-    ButtonStack stack = {0};
+    ButtonStack stack = new_button_stack(button_dispatch);
     
-    Widget *root = new_widget(
+    root = new_widget(
         "root",
         (WidgetMethods){
             .calc_layout=ws_root
@@ -64,6 +89,8 @@ int main(void)
         "panel",
         ws_panel
     );
+
+    calendar = new_calendar("calendar", ws_calendar);
 
     register_widget(button_container, root);
     register_widget(opt_main, button_container);

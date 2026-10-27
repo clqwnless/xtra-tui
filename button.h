@@ -20,14 +20,7 @@ App *app;
 
 typedef struct Button Button;
 typedef struct ButtonStack ButtonStack;
-
-typedef enum {
-    OPEN_MAIN,
-    OPEN_CALENDAR,
-    OPEN_EXTENSIONS,
-    OPEN_SETTINGS
-} ButtonPressedEvent;
-
+typedef void (*ButtonDispatchFunc)(int event);
 
 struct Button {
     ButtonStack *stack_ptr;
@@ -46,6 +39,8 @@ struct Button {
 struct ButtonStack {
     Button buttons[BUTTON_STACK_SIZE];
     size_t nbuttons;
+    
+    ButtonDispatchFunc dispatch_func;
 };
 
 
@@ -82,6 +77,7 @@ void button_event(App *app, Widget *w, InputEvent event)
         {
             reset_pressed(button_stack);
             button->pressed = true;
+            button_stack->dispatch_func(button->on_pressed_event);
         }
     }
 }
@@ -116,7 +112,7 @@ Widget *new_button_container(const char *id, LayoutFunc calc_layout)
         (WidgetMethods){
             .calc_layout = calc_layout,
         },
-        WIDGET_NONE_FLAGS
+        WIDGET_NONE_FLAGS | WIDGET_HAS_FRAME
     );
 }
 
@@ -139,9 +135,9 @@ Widget *new_button(const char *id, LayoutFunc calc_layout, Button button)
         WIDGET_IS_VISIBLE | WIDGET_IS_FOCUSABLE
     );
     
+    stack->buttons[0].pressed = true;
     
     stack_button = &stack->buttons[stack->nbuttons++];
- 
     *stack_button = button;
     
     w->data = (void*)stack_button;
@@ -149,4 +145,16 @@ Widget *new_button(const char *id, LayoutFunc calc_layout, Button button)
     return w;
 }
 
+
+
+ButtonStack new_button_stack(ButtonDispatchFunc dispatch_func)
+{
+    ButtonStack stack;
+    
+    stack.nbuttons = 0;
+    stack.dispatch_func = dispatch_func;
+    //stack.buttons[0].pressed = true;
+
+    return stack;
+}
 
