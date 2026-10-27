@@ -471,6 +471,8 @@ XTRA_API Rect margin_bottom(Widget *current, const char *relative_id)
 
 /* cursor */
 
+
+/*
 Widget *_match_cursor(Widget *start_node, Widget *end_node, short x, short y)
 {
     // if passing "deepest", then pass "deepest->parent" as start_node
@@ -537,11 +539,42 @@ Widget *_match_cursor(Widget *start_node, Widget *end_node, short x, short y)
     
     return NULL;
 }
+*/
+
+
+void *_match_cursor(Widget *current_node, Widget **result, int current_depth, int *depth_max, short x, short y)
+{
+    for (uint32_t i = 0; i < current_node->child_count; i++)
+    {
+        Widget *child = current_node->children[i];
+        Rect wsabs    = calc_wsabs(child);
+        
+        if (child->flags & (WIDGET_IS_VISIBLE) && is_in_rect(wsabs, x, y) && current_depth > *depth_max)
+        {
+            *result = child;
+            *depth_max = current_depth;
+        }
+        
+        if (child->child_count > 0)
+        {
+            _match_cursor(child, result, current_depth + 1, depth_max, x, y);
+        }
+    }
+}
+
 
 XTRA_API Widget *match_cursor(Widget *root, short x, short y)
 {
-    Widget *deepest = deepest_right(root);
-    return _match_cursor(deepest->parent, root, x, y);
+    Widget *result = NULL;
+    
+    int depth_max     = 0;
+    
+    _match_cursor(root, &result, 0, &depth_max, x, y);
+    
+    return result;
+    
+    //Widget *deepest = deepest_right(root);
+    //return _match_cursor(deepest->parent, root, x, y);
 }
 
 XTRA_API Cursor get_cursor(App *app)
