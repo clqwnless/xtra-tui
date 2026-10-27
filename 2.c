@@ -11,7 +11,14 @@ App *app;
 
 #define BUTTON(name, content, rel) LAYOUT_RIGHT(name, rel, 0, 0, sizeof(content) - 1, 1)
 
-#define BUTTON_STACK_SIZE 8
+#define BUTTON_STACK_SIZE 16
+
+
+#define BUTTON_CONTAINER LAYOUT_PARENT
+
+#define BUTTON_START(name, content) LAYOUT_PARENT(name, 0, 0, sizeof(content) - 1, 1)
+#define BUTTON_NEXT(name, relative_button, content) LAYOUT_MARGIN_RIGHT(name, relative_button, margin.x, margin.y, sizeof(content) - 1, 1)
+
 
 
 
@@ -24,6 +31,8 @@ Rect ws_main_opt(Widget *w)
 {
     return layout_wrapper(0, 0, 4, 1);
 }
+
+LAYOUT_MARGIN_RIGHT(ws_calendar_opt, "ws_main_opt", margin.x + 1, margin.y, sizeof("calendar") - 1, 1);
 
 
 typedef struct Button Button;
@@ -43,7 +52,7 @@ struct Button {
     uint16_t color_highlight;
     uint16_t color_default;
     
-    ButtonPressedEvent on_pressed_event;
+    int on_pressed_event; // dispatch
     
     const char *text;
     
@@ -52,7 +61,7 @@ struct Button {
 };
 
 struct ButtonStack {
-    Button data[BUTTON_STACK_SIZE];
+    Button buttons[BUTTON_STACK_SIZE];
     size_t nbuttons;
 };
 
@@ -65,7 +74,7 @@ void reset_pressed(ButtonStack *button_stack)
 {
     for (size_t i = 0; i < button_stack->nbuttons; i++)
     {
-        Button *button = &button_stack->data[i];
+        Button *button = &button_stack->buttons[i];
         button->pressed = false;
     }
 }
@@ -121,9 +130,45 @@ void button_render(App *app, Widget *w)
 
 
 
+Widget *new_button_container(const char *id, LayoutFunc calc_layout)
+{
+    return new_widget(
+        id,
+        (WidgetMethods){
+            .calc_layout = calc_layout,
+        },
+        WIDGET_NONE_FLAGS
+    );
+}
 
+Widget *new_button(const char *id, LayoutFunc calc_layout, Button button)
+{
+    ButtonStack *stack        = button.stack_ptr;
+    Button      *stack_button = NULL;
+    
+    assert(stack->nbuttons < BUTTON_STACK_SIZE);
+    
+    Widget *w = new_widget(
+        id,
+        (WidgetMethods){
+            .calc_layout = calc_layout,
+            .on_entry    = button_entry,
+            .on_exit     = button_exit,
+            .event_func  = button_event,
+            .render_func = button_render
+        },
+        WIDGET_IS_VISIBLE | WIDGET_IS_FOCUSABLE
+    );
+    
+    
+    stack_button = &stack->buttons[stack->nbuttons++];
+ 
+    *stack_button = button;
+    
+    w->data = (void*)stack_button;
 
-
+    return w;
+}
 
 
 
@@ -135,6 +180,8 @@ int main(void)
     
     init(app);
     
+    ButtonStack stack = {0};
+    
     Widget *root = new_widget(
         "root",
         (WidgetMethods){
@@ -142,35 +189,36 @@ int main(void)
         },
         WIDGET_NONE_FLAGS
     );
-
-    Widget *opt_main = new_widget(
+    
+    Widget *opt_main     = new_button(
         "ws_main_opt",
-        (WidgetMethods){
-            .calc_layout = ws_main_opt,
-            .on_entry    = button_entry,
-            .on_exit     = button_exit,
-            .event_func  = button_event,
-            .render_func = button_render
-        },
-        WIDGET_IS_VISIBLE | WIDGET_IS_FOCUSABLE
+        ws_main_opt,
+        (Button){
+            .stack_ptr        = &stack,
+            .color_highlight  = BG(0, 1, 0),
+            .color_default    = FG(0, 1, 0),
+            .on_pressed_event = OPEN_MAIN,
+            .text             = "main"
+        }
+    );
+    
+    Widget *opt_calendar = new_button(
+        "ws_calendar_opt",
+        ws_calendar_opt,
+        (Button){
+            .stack_ptr        = &stack,
+            .color_highlight  = BG(0, 1, 0),
+            .color_default    = FG(0, 1, 0),
+            .on_pressed_event = OPEN_CALENDAR,
+            .text             = "calendar"
+        }
     );
 
     register_widget(opt_main, root);
+    register_widget(opt_calendar, root);
 
 
-    // init button stack
-    ButtonStack stack = {0};
-    stack.data[0] = (Button){
-        .stack_ptr        = &stack,
-        .color_highlight  = FG(0, 1, 0),
-        .color_default    = FG(1, 1, 1),
-        .on_pressed_event = OPEN_MAIN,
-        .text             = "main",
-    };
-    stack.nbuttons = 1;
-    
-    opt_main->data = (void*)&stack.data[0];
-    
+
     app->root = root; 
     
     //cls(); 

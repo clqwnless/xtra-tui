@@ -1411,9 +1411,12 @@ int default_focus(App *app, InputEvent *event)
         app->focused->last_key = event->key;
     }
     
-    app->focused->last_event_type = event->type;
-    
-    return FOCUSED;
+    if (app->focused != NULL)
+    {
+        app->focused->last_key = event->key;
+        return FOCUSED;
+    }
+    return NOT_FOCUSED;
 }
 
 void dispatch_events_to_focused(App *app, InputEvent *event, int focus_ret)
