@@ -217,16 +217,10 @@ void update_mapping(Calendar *calendar)
     int nmonths_y   = rect.h / month_rows;
     
     
-    
-    //debug(0, 0, L"nmonths_x=%d, nmonths_y=%d", nmonths_x, nmonths_y);
-    //Sleep(10000);
-    
     int mapping_ndays = is_leap_year(calendar->year) ? 366 : 365;
     
     assert(nmonths_x > 0 && nmonths_y > 0);
     
-    // nmonths_x = 2;
-    // nmonths_y = 1;
     
     int month_yoff = 1;
     int month_xoff = 1;
@@ -541,7 +535,8 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
     Widget *container = new_widget(
         id,
         (WidgetMethods){
-            .calc_layout = layout_func
+            .calc_layout = layout_func,
+            .resize_func = resize_calendar
         },
         WIDGET_IS_VISIBLE | WIDGET_HAS_FRAME
     );
@@ -561,7 +556,7 @@ Widget *new_calendar(const char *id, LayoutFunc layout_func)
             .calc_layout = ws_calendar_box,
             .render_func = render_calendar,
             .event_func  = event_calendar,
-            .resize_func = resize_calendar
+            //.resize_func = resize_calendar
         },
         WIDGET_IS_VISIBLE
     );

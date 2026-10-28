@@ -35,6 +35,7 @@ void button_dispatch(int event)
     {
         case OPEN_CALENDAR:
             register_widget(calendar, root);
+            _resize_func(app, calendar);
             break;
         case OPEN_MAIN:
             deregister_widget(calendar, root);

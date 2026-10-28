@@ -64,6 +64,8 @@
 #define _calc_cursor(w) (assert((w) != NULL), assert((w)->calc_cursor != NULL), (w)->calc_cursor((w)))
 #define _on_entry(w)    (assert((w) != NULL), assert((w)->on_entry    != NULL), (w)->on_entry((w)))
 #define _on_exit(w)     (assert((w) != NULL), assert((w)->on_exit     != NULL), (w)->on_exit((w)))
+#define _resize_func(app, w) (assert(app != NULL), assert((w) != NULL), assert((w)->resize_func != NULL), (w)->resize_func((app), (w)))
+
 
 /* main api structs */
 
